@@ -1,98 +1,254 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useMemo, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+type InterestOption = {
+  id: string;
+  icon: string;
+  label: string;
+};
+
+const opportunityType: InterestOption[] = [
+  { id: "scholarships", icon: "🎓", label: "Scholarships" },
+  { id: "events", icon: "🗓️", label: "Events" },
+  { id: "courses", icon: "📚", label: "Courses" },
+  { id: "volunteering", icon: "🤝", label: "Volunteering" },
+  { id: "internships", icon: "💼", label: "Internships" },
+];
+
+const subjectArea: InterestOption[] = [
+  { id: "web-dev", icon: "💻", label: "Web Dev" },
+  { id: "business", icon: "📊", label: "Business" },
+  { id: "social-work", icon: "🌱", label: "Social Work" },
+  { id: "healthcare", icon: "🩺", label: "Healthcare" },
+  { id: "arts", icon: "🎨", label: "Arts" },
+  { id: "technology", icon: "⚙️", label: "Technology" },
+];
+
+const formatType: InterestOption[] = [
+  { id: "online", icon: "🌐", label: "Online" },
+  { id: "in-person", icon: "🏢", label: "In-person" },
+  { id: "hybrid", icon: "🔁", label: "Hybrid" },
+];
+
+const initialSelected = [
+  "scholarships",
+  "events",
+  "volunteering",
+  "web-dev",
+  "social-work",
+];
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(initialSelected),
+  );
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const selectedCount = selected.size;
+  const canContinue = selectedCount >= 3;
+
+  const sections = useMemo(
+    () => [
+      { title: "OPPORTUNITY TYPE", options: opportunityType },
+      { title: "SUBJECT AREA", options: subjectArea },
+      { title: "FORMAT", options: formatType },
+    ],
+    [],
+  );
+
+  const toggleOption = (id: string) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const onContinue = () => {
+    if (!canContinue) return;
+    router.push("/(tabs)/explore");
+  };
+
+  return (
+    <SafeAreaView
+      style={styles.screen}
+      edges={["top", "left", "right", "bottom"]}
+    >
+      <StatusBar style="dark" />
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.title}>What are you interested in?</Text>
+        <Text style={styles.subtitle}>
+          Select at least 3 to personalize your feed
+        </Text>
+        <Text style={styles.selectedCount}>{selectedCount} selected</Text>
+
+        {sections.map((section) => (
+          <View key={section.title} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+
+            <View style={styles.optionsWrap}>
+              {section.options.map((option) => {
+                const isSelected = selected.has(option.id);
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[
+                      styles.optionChip,
+                      isSelected ? styles.optionChipSelected : undefined,
+                    ]}
+                    activeOpacity={0.85}
+                    onPress={() => toggleOption(option.id)}
+                  >
+                    {isSelected ? (
+                      <Text style={styles.optionCheck}>✓</Text>
+                    ) : null}
+                    <Text style={styles.optionIcon}>{option.icon}</Text>
+                    <Text style={styles.optionText}>{option.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[
+            styles.continueButton,
+            !canContinue ? styles.continueButtonDisabled : undefined,
+          ]}
+          onPress={onContinue}
+          activeOpacity={0.92}
+          disabled={!canContinue}
+        >
+          <Text style={styles.continueButtonText}>Continue</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  screen: {
+    flex: 1,
+    backgroundColor: "#F5F5F8",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  scroll: {
+    flex: 1,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  scrollContent: {
+    paddingHorizontal: 30,
+    paddingTop: 18,
+    paddingBottom: 24,
+  },
+  title: {
+    fontSize: 50,
+    lineHeight: 56,
+    fontWeight: "800",
+    color: "#0A123B",
+    maxWidth: 430,
+  },
+  subtitle: {
+    marginTop: 10,
+    fontSize: 17,
+    color: "#77809A",
+    fontWeight: "500",
+  },
+  selectedCount: {
+    marginTop: 8,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#E58600",
+  },
+  section: {
+    marginTop: 28,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    letterSpacing: 2,
+    color: "#6E778F",
+    fontWeight: "800",
+  },
+  optionsWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginTop: 14,
+  },
+  optionChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: "#C1B5F3",
+    backgroundColor: "#F5F5F8",
+  },
+  optionChipSelected: {
+    backgroundColor: "#E8E9F8",
+    borderColor: "#E8E9F8",
+  },
+  optionCheck: {
+    marginRight: 6,
+    fontSize: 14,
+    color: "#E58600",
+    fontWeight: "700",
+  },
+  optionIcon: {
+    marginRight: 8,
+    fontSize: 14,
+  },
+  optionText: {
+    fontSize: 17,
+    color: "#101A40",
+    fontWeight: "600",
+  },
+  footer: {
+    paddingHorizontal: 30,
+    paddingTop: 16,
+    paddingBottom: 14,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0EA",
+    backgroundColor: "#FBFBFC",
+  },
+  continueButton: {
+    borderRadius: 18,
+    backgroundColor: "#E58600",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 68,
+    shadowColor: "#E58600",
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  continueButtonDisabled: {
+    backgroundColor: "#D6C6AA",
+  },
+  continueButtonText: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "700",
   },
 });
