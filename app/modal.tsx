@@ -1,8 +1,6 @@
-import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import {
-  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -11,21 +9,121 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+type InterestChip = {
+  id: string;
+  label: string;
+  icon: string;
+  selected: boolean;
+};
+
+const opportunityType: InterestChip[] = [
+  { id: "scholarships", label: "Scholarships", icon: "🎓", selected: true },
+  { id: "events", label: "Events", icon: "🗓️", selected: true },
+  { id: "courses", label: "Courses", icon: "📚", selected: false },
+  { id: "volunteering", label: "Volunteering", icon: "🤝", selected: true },
+  { id: "internships", label: "Internships", icon: "💼", selected: false },
+];
+
+const subjectArea: InterestChip[] = [
+  { id: "web-dev", label: "Web Dev", icon: "💻", selected: true },
+  { id: "business", label: "Business", icon: "📊", selected: false },
+  { id: "social-work", label: "Social Work", icon: "🌱", selected: true },
+  { id: "healthcare", label: "Healthcare", icon: "🧬", selected: false },
+  { id: "arts", label: "Arts", icon: "🎨", selected: false },
+  { id: "technology", label: "Technology", icon: "⚙️", selected: false },
+];
+
+const formatType: InterestChip[] = [
+  { id: "online", label: "Online", icon: "🌐", selected: false },
+  { id: "in-person", label: "In-person", icon: "🏢", selected: false },
+  { id: "hybrid", label: "Hybrid", icon: "🔀", selected: false },
+];
+
+type Section = {
+  title: string;
+  items: InterestChip[];
+};
+
+const sections: Section[] = [
+  { title: "OPPORTUNITY TYPE", items: opportunityType },
+  { title: "SUBJECT AREA", items: subjectArea },
+  { title: "FORMAT", items: formatType },
+];
+
 export default function ModalScreen() {
   const router = useRouter();
   const { height } = useWindowDimensions();
 
-  const isCompactHeight = height < 830;
-  const headingSize = isCompactHeight ? 46 : 56;
-  const headingLineHeight = isCompactHeight ? 48 : 58;
-  const heroHeight = isCompactHeight ? "43%" : "48%";
+  const scale = height < 760 ? 0.8 : height < 830 ? 0.86 : 0.9;
+  const sv = (value: number) => Math.round(value * scale);
 
-  const onContinueWithGoogle = () => {
+  const onContinue = () => {
     router.replace("/(tabs)");
   };
 
-  const onContinueWithoutAccount = () => {
-    router.replace("/(tabs)");
+  const selectedCount = [
+    ...opportunityType,
+    ...subjectArea,
+    ...formatType,
+  ].filter((item) => item.selected).length;
+
+  const renderChip = (chip: InterestChip) => {
+    const isSelected = chip.selected;
+
+    return (
+      <View
+        key={chip.id}
+        style={[
+          styles.chip,
+          {
+            borderWidth: sv(1.5),
+            paddingVertical: sv(8),
+            paddingHorizontal: sv(13),
+            minHeight: sv(46),
+            marginRight: sv(10),
+            marginBottom: sv(10),
+          },
+          isSelected ? styles.chipSelected : styles.chipUnselected,
+        ]}
+      >
+        {isSelected ? (
+          <Text
+            style={[
+              styles.chipMark,
+              {
+                fontSize: sv(13),
+                lineHeight: sv(16),
+                marginRight: sv(6),
+              },
+            ]}
+          >
+            ✓
+          </Text>
+        ) : null}
+        <Text
+          style={[
+            styles.chipIcon,
+            {
+              fontSize: sv(15),
+              marginRight: sv(8),
+            },
+          ]}
+        >
+          {chip.icon}
+        </Text>
+        <Text
+          style={[
+            styles.chipLabel,
+            {
+              fontSize: sv(16),
+              lineHeight: sv(20),
+            },
+          ]}
+        >
+          {chip.label}
+        </Text>
+      </View>
+    );
   };
 
   return (
@@ -33,80 +131,109 @@ export default function ModalScreen() {
       style={styles.screen}
       edges={["top", "left", "right", "bottom"]}
     >
-      <StatusBar style="light" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
+      <View
+        style={[
+          styles.container,
+          {
+            paddingHorizontal: sv(20),
+            paddingTop: sv(80),
+          },
+        ]}
       >
-        <View style={[styles.heroArea, { height: heroHeight }]}>
-          <View style={[styles.orb, styles.topRightOrb]} />
-          <View style={[styles.orb, styles.midLeftOrb]} />
-
-          <View style={[styles.card, styles.cardScholarship]}>
-            <Text style={styles.cardLabel}>SCHOLARSHIP</Text>
-            <Text style={styles.cardTitle}>Future Leaders 2025</Text>
+        <View style={styles.contentArea}>
+          <View style={[styles.headerBlock, { marginBottom: sv(14) }]}>
+            <Text
+              style={[styles.heading, { fontSize: sv(46), lineHeight: sv(50) }]}
+            >
+              What are you{"\n"}interested in?
+            </Text>
+            <Text
+              style={[
+                styles.subheading,
+                {
+                  fontSize: sv(15),
+                  lineHeight: sv(22),
+                },
+              ]}
+            >
+              Select at least 3 to personalize your feed
+            </Text>
+            <Text
+              style={[
+                styles.selectedText,
+                { fontSize: sv(16), lineHeight: sv(22), marginTop: sv(5) },
+              ]}
+            >
+              {selectedCount} selected
+            </Text>
           </View>
 
-          <View style={[styles.card, styles.cardInternship]}>
-            <Text style={styles.cardLabel}>INTERNSHIP</Text>
-            <Text style={styles.cardTitle}>Seedstars Code</Text>
-          </View>
-
-          <View style={[styles.card, styles.cardEvent]}>
-            <Text style={styles.cardLabel}>EVENT</Text>
-            <Text style={styles.cardTitle}>TEDxPhnomPenh Youth Forum</Text>
-          </View>
+          {sections.map((section, index) => (
+            <View
+              key={section.title}
+              style={[
+                styles.section,
+                { marginBottom: index === sections.length - 1 ? 0 : sv(12) },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  {
+                    fontSize: sv(12),
+                    lineHeight: sv(25),
+                    letterSpacing: 1.8,
+                    marginBottom: sv(8),
+                  },
+                ]}
+              >
+                {section.title}
+              </Text>
+              <View style={styles.chipGrid}>
+                {section.items.map(renderChip)}
+              </View>
+            </View>
+          ))}
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.chip}>
-            <Text style={styles.chipText}>* For Cambodian Students</Text>
-          </View>
-
-          <Text
-            style={[
-              styles.headingWhite,
-              { fontSize: headingSize, lineHeight: headingLineHeight },
-            ]}
-          >
-            Discover Your
-          </Text>
-
-          <Text
-            style={[
-              styles.headingOrange,
-              { fontSize: headingSize, lineHeight: headingLineHeight },
-            ]}
-          >
-            Next Opportunity
-          </Text>
-
-          <Text style={styles.subheading}>
-            Scholarships, internships, events, and more - all in one place,
-            personalized for you.
-          </Text>
-
+        <View
+          style={[
+            styles.bottomBar,
+            {
+              paddingHorizontal: sv(14),
+              paddingTop: sv(30),
+              paddingBottom: sv(50),
+              marginHorizontal: -sv(20),
+            },
+          ]}
+        >
           <TouchableOpacity
             activeOpacity={0.9}
-            style={styles.googleButton}
-            onPress={onContinueWithGoogle}
+            style={[
+              styles.continueButton,
+              {
+                borderRadius: sv(14),
+                minHeight: sv(66),
+              },
+            ]}
+            onPress={onContinue}
           >
-            <FontAwesome name="google" size={26} color="#FFFFFF" />
-            <Text style={styles.googleButtonText}>Continue with Google</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.skipButton}
-            onPress={onContinueWithoutAccount}
-          >
-            <Text style={styles.skipButtonText}>Continue without account</Text>
+            <Text
+              style={[
+                styles.continueButtonText,
+                {
+                  fontSize: sv(20),
+                  lineHeight: sv(44),
+                },
+              ]}
+            >
+              Continue
+            </Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -114,147 +241,90 @@ export default function ModalScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#070221",
+    backgroundColor: "#FFFFFF",
   },
-  scroll: {
+  container: {
     flex: 1,
+    backgroundColor: "#F7F7FA",
   },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  heroArea: {
-    position: "relative",
-    height: "48%",
-    marginTop: 8,
-  },
-  orb: {
-    position: "absolute",
-    borderRadius: 999,
-  },
-  topRightOrb: {
-    right: -80,
-    top: 24,
-    width: 290,
-    height: 290,
-    backgroundColor: "rgba(132, 56, 36, 0.28)",
-  },
-  midLeftOrb: {
-    left: -50,
-    top: 215,
-    width: 180,
-    height: 180,
-    backgroundColor: "rgba(104, 56, 48, 0.2)",
-  },
-  card: {
-    position: "absolute",
-    borderRadius: 22,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    shadowColor: "#000000",
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
-  },
-  cardScholarship: {
-    top: 82,
-    left: "28%",
-    right: 26,
-    transform: [{ rotate: "-6deg" }],
-    backgroundColor: "#E8E1CA",
-  },
-  cardInternship: {
-    top: 126,
-    left: "34%",
-    right: 28,
-    transform: [{ rotate: "4deg" }],
-    backgroundColor: "#D8D8EA",
-  },
-  cardEvent: {
-    top: 168,
-    left: "22%",
-    right: 26,
-    backgroundColor: "#F2F2F5",
-  },
-  cardLabel: {
-    fontSize: 15,
-    letterSpacing: 1,
-    fontWeight: "700",
-    color: "#7F8191",
-    marginBottom: 2,
-  },
-  cardTitle: {
-    fontSize: 20,
-    lineHeight: 28,
-    fontWeight: "700",
-    color: "#06103F",
-  },
-  content: {
+  contentArea: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 16,
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
+  },
+  headerBlock: {
+    marginBottom: 0,
+  },
+  heading: {
+    color: "#0D1540",
+    fontWeight: "800",
+    letterSpacing: -0.4,
+    marginBottom: 6,
+  },
+  subheading: {
+    color: "#6C758D",
+    fontWeight: "500",
+  },
+  selectedText: {
+    marginTop: 4,
+    color: "#E37F00",
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+  section: {
+    marginBottom: 0,
+  },
+  sectionTitle: {
+    color: "#606B84",
+    fontWeight: "800",
+  },
+  chipGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "flex-start",
   },
   chip: {
     borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(255, 145, 29, 0.4)",
-    backgroundColor: "rgba(97, 40, 29, 0.45)",
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    marginBottom: 22,
-  },
-  chipText: {
-    color: "#FF8B0D",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  headingWhite: {
-    color: "#FFFFFF",
-    fontSize: 56,
-    lineHeight: 58,
-    fontWeight: "800",
-  },
-  headingOrange: {
-    color: "#FF8A00",
-    fontSize: 56,
-    lineHeight: 58,
-    fontWeight: "800",
-    marginBottom: 18,
-  },
-  subheading: {
-    color: "#9B9FB3",
-    fontSize: 18,
-    lineHeight: 30,
-    fontWeight: "500",
-    marginBottom: 26,
-  },
-  googleButton: {
-    backgroundColor: "#F28300",
-    borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 14,
-    paddingVertical: 18,
-    shadowColor: "#FF8A00",
-    shadowOpacity: 0.4,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
   },
-  googleButtonText: {
-    color: "#FFFFFF",
-    fontSize: 18,
+  chipSelected: {
+    backgroundColor: "#EAEBFB",
+    borderColor: "#EAEBFB",
+  },
+  chipUnselected: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#B7AFFF",
+  },
+  chipMark: {
+    color: "#E58A09",
+    fontWeight: "900",
+    textAlign: "center",
+  },
+  chipIcon: {
+    marginTop: -1,
+  },
+  chipLabel: {
+    color: "#17214B",
     fontWeight: "700",
   },
-  skipButton: {
-    marginTop: 22,
-    alignItems: "center",
+  bottomBar: {
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E7E5F3",
   },
-  skipButtonText: {
-    color: "#7F839A",
-    fontSize: 15,
-    fontWeight: "500",
+  continueButton: {
+    backgroundColor: "#E88300",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#CC7400",
+    shadowOpacity: 0.14,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 11,
+    elevation: 4,
+  },
+  continueButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    letterSpacing: 0,
   },
 });

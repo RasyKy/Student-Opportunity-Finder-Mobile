@@ -1,6 +1,6 @@
+import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -10,83 +10,203 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type InterestOption = {
+type TagTone = "gold" | "mint" | "pink" | "blue";
+
+type OpportunityCard = {
   id: string;
   icon: string;
-  label: string;
+  title: string;
+  org: string;
+  tags: { label: string; tone: TagTone }[];
+  date: string;
+  hero: string;
 };
 
-const opportunityType: InterestOption[] = [
-  { id: "scholarships", icon: "🎓", label: "Scholarships" },
-  { id: "events", icon: "🗓️", label: "Events" },
-  { id: "courses", icon: "📚", label: "Courses" },
-  { id: "volunteering", icon: "🤝", label: "Volunteering" },
-  { id: "internships", icon: "💼", label: "Internships" },
+type DiscoverItem = {
+  id: string;
+  icon: string;
+  title: string;
+  org: string;
+  date: string;
+  leftTone: "gold" | "pink";
+  tags: { label: string; tone: TagTone }[];
+};
+
+const recentCards: OpportunityCard[] = [
+  {
+    id: "fulbright",
+    icon: "🎓",
+    title: "Fulbright Foreign Student Program 2025",
+    org: "US Embassy Phnom Penh",
+    tags: [
+      { label: "Scholarship", tone: "gold" },
+      { label: "Online", tone: "mint" },
+    ],
+    date: "12 days left",
+    hero: "#F2EBCF",
+  },
+  {
+    id: "tedx",
+    icon: "🎪",
+    title: "TEDxPhnomPenh Youth Leadership Summit",
+    org: "TEDx Cambodia",
+    tags: [
+      { label: "Event", tone: "pink" },
+      { label: "In-person", tone: "mint" },
+    ],
+    date: "Mar 25, 2025",
+    hero: "#F0D6F2",
+  },
 ];
 
-const subjectArea: InterestOption[] = [
-  { id: "web-dev", icon: "💻", label: "Web Dev" },
-  { id: "business", icon: "📊", label: "Business" },
-  { id: "social-work", icon: "🌱", label: "Social Work" },
-  { id: "healthcare", icon: "🩺", label: "Healthcare" },
-  { id: "arts", icon: "🎨", label: "Arts" },
-  { id: "technology", icon: "⚙️", label: "Technology" },
+const recommendedCards: OpportunityCard[] = [
+  {
+    id: "unicef",
+    icon: "🌱",
+    title: "Community Health Volunteer Programme",
+    org: "UNICEF Cambodia",
+    tags: [{ label: "Volunteer", tone: "mint" }],
+    date: "Rolling basis",
+    hero: "#CDEED9",
+  },
+  {
+    id: "fullstack",
+    icon: "💻",
+    title: "Full Stack Web Development Bootcamp",
+    org: "Technovation Khmer",
+    tags: [
+      { label: "Course", tone: "blue" },
+      { label: "Online", tone: "mint" },
+    ],
+    date: "Free",
+    hero: "#D9DBF0",
+  },
 ];
 
-const formatType: InterestOption[] = [
-  { id: "online", icon: "🌐", label: "Online" },
-  { id: "in-person", icon: "🏢", label: "In-person" },
-  { id: "hybrid", icon: "🔁", label: "Hybrid" },
+const discoverItems: DiscoverItem[] = [
+  {
+    id: "jica",
+    icon: "🎓",
+    title: "JICA Japan Scholarship for STEM Students",
+    org: "JICA Cambodia Office",
+    date: "8 days left",
+    leftTone: "gold",
+    tags: [{ label: "Scholarship", tone: "gold" }],
+  },
+  {
+    id: "arts",
+    icon: "🎨",
+    title: "Digital Arts Workshop - Design for Impact",
+    org: "Meta x Creative Cambodia",
+    date: "Apr 10, 2025",
+    leftTone: "pink",
+    tags: [
+      { label: "Event", tone: "pink" },
+      { label: "Online", tone: "mint" },
+    ],
+  },
 ];
 
-const initialSelected = [
-  "scholarships",
-  "events",
-  "volunteering",
-  "web-dev",
-  "social-work",
-];
+const tagStyles: Record<TagTone, { backgroundColor: string; color: string }> = {
+  gold: { backgroundColor: "#F8E9B9", color: "#503800" },
+  mint: { backgroundColor: "#D7F0DF", color: "#134125" },
+  pink: { backgroundColor: "#F8DDF2", color: "#5E1E5A" },
+  blue: { backgroundColor: "#E0E5FF", color: "#1E2E7A" },
+};
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <TouchableOpacity activeOpacity={0.8}>
+        <Text style={styles.sectionAction}>See all</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+function OpportunityTile({
+  item,
+  onPress,
+}: {
+  item: OpportunityCard;
+  onPress?: () => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.tile} activeOpacity={0.9} onPress={onPress}>
+      <View style={[styles.tileHero, { backgroundColor: item.hero }]}>
+        <Text style={styles.heroIcon}>{item.icon}</Text>
+      </View>
+      <View style={styles.tileBody}>
+        <View style={styles.tagRow}>
+          {item.tags.map((tag) => (
+            <View
+              key={tag.label}
+              style={[
+                styles.tag,
+                { backgroundColor: tagStyles[tag.tone].backgroundColor },
+              ]}
+            >
+              <Text style={[styles.tagText, { color: tagStyles[tag.tone].color }]}>
+                {tag.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <Text style={styles.tileTitle}>{item.title}</Text>
+        <Text style={styles.tileOrg}>{item.org}</Text>
+        <View style={styles.tileMetaRow}>
+          <Text style={styles.tileDate}>{item.date}</Text>
+          <FontAwesome name="bookmark-o" size={17} color="#A88FD8" />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+function DiscoverTile({ item }: { item: DiscoverItem }) {
+  return (
+    <View style={styles.discoverTile}>
+      <View
+        style={[
+          styles.discoverIconBlock,
+          item.leftTone === "gold" ? styles.blockGold : styles.blockPink,
+        ]}
+      >
+        <Text style={styles.discoverIcon}>{item.icon}</Text>
+      </View>
+      <View style={styles.discoverBody}>
+        <View style={styles.tagRow}>
+          {item.tags.map((tag) => (
+            <View
+              key={tag.label}
+              style={[
+                styles.tag,
+                { backgroundColor: tagStyles[tag.tone].backgroundColor },
+              ]}
+            >
+              <Text style={[styles.tagText, { color: tagStyles[tag.tone].color }]}>
+                {tag.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <Text style={styles.discoverTitle}>{item.title}</Text>
+        <Text style={styles.tileOrg}>{item.org}</Text>
+        <View style={styles.tileMetaRow}>
+          <Text style={styles.tileDate}>{item.date}</Text>
+          <FontAwesome name="bookmark-o" size={17} color="#A88FD8" />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [selected, setSelected] = useState<Set<string>>(
-    new Set(initialSelected),
-  );
-
-  const selectedCount = selected.size;
-  const canContinue = selectedCount >= 3;
-
-  const sections = useMemo(
-    () => [
-      { title: "OPPORTUNITY TYPE", options: opportunityType },
-      { title: "SUBJECT AREA", options: subjectArea },
-      { title: "FORMAT", options: formatType },
-    ],
-    [],
-  );
-
-  const toggleOption = (id: string) => {
-    setSelected((current) => {
-      const next = new Set(current);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const onContinue = () => {
-    if (!canContinue) return;
-    router.push("/(tabs)/explore");
-  };
 
   return (
-    <SafeAreaView
-      style={styles.screen}
-      edges={["top", "left", "right", "bottom"]}
-    >
+    <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
       <StatusBar style="dark" />
 
       <ScrollView
@@ -94,55 +214,70 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>What are you interested in?</Text>
-        <Text style={styles.subtitle}>
-          Select at least 3 to personalize your feed
-        </Text>
-        <Text style={styles.selectedCount}>{selectedCount} selected</Text>
-
-        {sections.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-
-            <View style={styles.optionsWrap}>
-              {section.options.map((option) => {
-                const isSelected = selected.has(option.id);
-                return (
-                  <TouchableOpacity
-                    key={option.id}
-                    style={[
-                      styles.optionChip,
-                      isSelected ? styles.optionChipSelected : undefined,
-                    ]}
-                    activeOpacity={0.85}
-                    onPress={() => toggleOption(option.id)}
-                  >
-                    {isSelected ? (
-                      <Text style={styles.optionCheck}>✓</Text>
-                    ) : null}
-                    <Text style={styles.optionIcon}>{option.icon}</Text>
-                    <Text style={styles.optionText}>{option.label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+        <View style={styles.topRow}>
+          <View style={styles.brandWrap}>
+            <View style={styles.brandMark}>
+              <Text style={styles.brandMarkText}>O</Text>
             </View>
+            <Text style={styles.brandText}>
+              Opport<Text style={styles.brandAccent}>Cam</Text>
+            </Text>
           </View>
-        ))}
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[
-            styles.continueButton,
-            !canContinue ? styles.continueButtonDisabled : undefined,
-          ]}
-          onPress={onContinue}
-          activeOpacity={0.92}
-          disabled={!canContinue}
+          <TouchableOpacity style={styles.notificationButton} activeOpacity={0.85}>
+            <FontAwesome name="bell-o" size={20} color="#1B2146" />
+            <View style={styles.notificationDot} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.greetingBlock}>
+          <Text style={styles.greeting}>Good morning,</Text>
+          <Text style={styles.greetingName}>Dara Khmer 👋</Text>
+        </View>
+
+        <SectionHeader title="Recent Opportunities" />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
-        </TouchableOpacity>
-      </View>
+          {recentCards.map((item) => (
+            <OpportunityTile
+              key={item.id}
+              item={item}
+              onPress={
+                item.id === "fulbright"
+                  ? () => router.push("/opportunity-detail")
+                  : undefined
+              }
+            />
+          ))}
+        </ScrollView>
+
+        <SectionHeader title="Recommended for You" />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+        >
+          {recommendedCards.map((item) => (
+            <OpportunityTile key={item.id} item={item} />
+          ))}
+        </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Discover All</Text>
+          <TouchableOpacity activeOpacity={0.8}>
+            <Text style={styles.sectionAction}>Filter</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.discoverList}>
+          {discoverItems.map((item) => (
+            <DiscoverTile key={item.id} item={item} />
+          ))}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -150,105 +285,202 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#F5F5F8",
+    backgroundColor: "#F5F5F7",
   },
   scroll: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 30,
-    paddingTop: 18,
-    paddingBottom: 24,
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 20,
   },
-  title: {
-    fontSize: 50,
-    lineHeight: 56,
-    fontWeight: "800",
-    color: "#0A123B",
-    maxWidth: 430,
-  },
-  subtitle: {
-    marginTop: 10,
-    fontSize: 17,
-    color: "#77809A",
-    fontWeight: "500",
-  },
-  selectedCount: {
-    marginTop: 8,
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#E58600",
-  },
-  section: {
-    marginTop: 28,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    letterSpacing: 2,
-    color: "#6E778F",
-    fontWeight: "800",
-  },
-  optionsWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginTop: 14,
-  },
-  optionChip: {
+  topRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 999,
-    borderWidth: 2,
-    borderColor: "#C1B5F3",
-    backgroundColor: "#F5F5F8",
+    justifyContent: "space-between",
+    marginBottom: 10,
   },
-  optionChipSelected: {
-    backgroundColor: "#E8E9F8",
-    borderColor: "#E8E9F8",
+  brandWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
-  optionCheck: {
-    marginRight: 6,
-    fontSize: 14,
-    color: "#E58600",
-    fontWeight: "700",
-  },
-  optionIcon: {
-    marginRight: 8,
-    fontSize: 14,
-  },
-  optionText: {
-    fontSize: 17,
-    color: "#101A40",
-    fontWeight: "600",
-  },
-  footer: {
-    paddingHorizontal: 30,
-    paddingTop: 16,
-    paddingBottom: 14,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0EA",
-    backgroundColor: "#FBFBFC",
-  },
-  continueButton: {
-    borderRadius: 18,
-    backgroundColor: "#E58600",
+  brandMark: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: "#EE8600",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 68,
-    shadowColor: "#E58600",
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
   },
-  continueButtonDisabled: {
-    backgroundColor: "#D6C6AA",
-  },
-  continueButtonText: {
+  brandMarkText: {
     color: "#FFFFFF",
-    fontSize: 20,
+    fontSize: 18,
+    fontWeight: "900",
+  },
+  brandText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#10163E",
+    letterSpacing: -0.2,
+  },
+  brandAccent: {
+    color: "#EE8600",
+  },
+  notificationButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#F0F0F5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: 11,
+    right: 11,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#EE8600",
+  },
+  greetingBlock: {
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  greeting: {
+    fontSize: 17,
+    color: "#7A7E95",
+    fontWeight: "500",
+  },
+  greetingName: {
+    marginTop: 2,
+    fontSize: 17,
+    lineHeight: 21,
+    color: "#151B43",
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  sectionHeader: {
+    marginTop: 18,
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: "800",
+    color: "#151B43",
+    letterSpacing: -0.35,
+  },
+  sectionAction: {
+    color: "#EE8600",
+    fontSize: 13,
+    lineHeight: 17,
     fontWeight: "700",
+  },
+  horizontalList: {
+    paddingBottom: 2,
+    paddingRight: 8,
+  },
+  tile: {
+    width: 244,
+    borderRadius: 16,
+    marginRight: 12,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E7E7EE",
+    overflow: "hidden",
+  },
+  tileHero: {
+    height: 120,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroIcon: {
+    fontSize: 40,
+  },
+  tileBody: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 12,
+  },
+  tagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginBottom: 8,
+  },
+  tag: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  tileTitle: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "800",
+    color: "#1A2148",
+  },
+  tileOrg: {
+    marginTop: 4,
+    fontSize: 10,
+    color: "#6F758B",
+    fontWeight: "500",
+  },
+  tileMetaRow: {
+    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  tileDate: {
+    fontSize: 10,
+    color: "#6F758B",
+    fontWeight: "600",
+  },
+  discoverList: {
+    gap: 12,
+    paddingBottom: 8,
+  },
+  discoverTile: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E7E7EE",
+    overflow: "hidden",
+    flexDirection: "row",
+  },
+  discoverIconBlock: {
+    width: 104,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  blockGold: {
+    backgroundColor: "#F2EBCF",
+  },
+  blockPink: {
+    backgroundColor: "#F0D6F2",
+  },
+  discoverIcon: {
+    fontSize: 34,
+  },
+  discoverBody: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  discoverTitle: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "800",
+    color: "#1A2148",
   },
 });
