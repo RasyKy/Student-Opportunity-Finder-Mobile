@@ -2,23 +2,37 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { useSavedOpportunities } from "../hooks/use-saved-opportunities";
 
 const opportunityTags = ["Scholarship", "Fully Funded", "Open"] as const;
 
 const quickFacts = [
-  { id: "duration", icon: "time-outline", title: "DURATION", value: "1 to 2 years" },
-  { id: "award", icon: "wallet-outline", title: "AWARD", value: "Fully funded" },
+  {
+    id: "duration",
+    icon: "time-outline",
+    title: "DURATION",
+    value: "1 to 2 years",
+  },
+  {
+    id: "award",
+    icon: "wallet-outline",
+    title: "AWARD",
+    value: "Fully funded",
+  },
 ] as const;
 
 export default function OpportunityDetailScreen() {
   const router = useRouter();
+  const { isSaved, toggleSaved } = useSavedOpportunities();
+  const bookmarked = isSaved("fulbright");
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -33,8 +47,16 @@ export default function OpportunityDetailScreen() {
           >
             <Ionicons name="chevron-back" size={24} color="#1D2142" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.topButton} activeOpacity={0.85}>
-            <Ionicons name="bookmark" size={20} color="#E58E00" />
+          <TouchableOpacity
+            style={styles.topButton}
+            activeOpacity={0.85}
+            onPress={() => toggleSaved("fulbright")}
+          >
+            <Ionicons
+              name={bookmarked ? "bookmark" : "bookmark-outline"}
+              size={20}
+              color={bookmarked ? "#E58E00" : "#7B8198"}
+            />
           </TouchableOpacity>
         </View>
 
@@ -62,7 +84,9 @@ export default function OpportunityDetailScreen() {
           ))}
         </View>
 
-        <Text style={styles.title}>Fulbright Foreign Student Program 2025-2026</Text>
+        <Text style={styles.title}>
+          Fulbright Foreign Student Program 2025-2026
+        </Text>
 
         <View style={styles.orgRow}>
           <Text style={styles.orgText}>US Embassy Phnom Penh</Text>
@@ -86,10 +110,11 @@ export default function OpportunityDetailScreen() {
 
         <Text style={styles.sectionTitle}>About this Opportunity</Text>
         <Text style={styles.bodyText}>
-          The Fulbright Foreign Student Program enables graduate students and young
-          professionals from Cambodia to study in the United States. Fellows are
-          selected based on academic achievement, leadership potential, and
-          commitment to returning home to contribute to their communities.
+          The Fulbright Foreign Student Program enables graduate students and
+          young professionals from Cambodia to study in the United States.
+          Fellows are selected based on academic achievement, leadership
+          potential, and commitment to returning home to contribute to their
+          communities.
         </Text>
 
         <View style={styles.factGrid}>
@@ -151,7 +176,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   heroIcon: {
-    fontSize: 70,
+    fontSize: 62,
   },
   contentScroll: {
     flex: 1,
@@ -178,13 +203,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#D6F0DC",
   },
   tagText: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#1D2450",
     fontWeight: "700",
   },
   title: {
-    fontSize: 45,
-    lineHeight: 49,
+    fontSize: 38,
+    lineHeight: 42,
     color: "#121B48",
     fontWeight: "900",
     letterSpacing: -0.7,
@@ -196,7 +221,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   orgText: {
-    fontSize: 17,
+    fontSize: 15,
     color: "#6A7187",
     fontWeight: "500",
   },
@@ -225,7 +250,7 @@ const styles = StyleSheet.create({
   },
   metaLabel: {
     color: "#6A7187",
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "500",
   },
   deadlinePill: {
@@ -234,7 +259,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    height: 38,
+    height: 34,
     gap: 8,
   },
   deadlineIcon: {
@@ -242,8 +267,8 @@ const styles = StyleSheet.create({
   },
   deadlineText: {
     color: "#17225A",
-    fontSize: 27,
-    lineHeight: 31,
+    fontSize: 19,
+    lineHeight: 23,
     fontWeight: "900",
     letterSpacing: -0.4,
   },
@@ -255,15 +280,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: "#111C4B",
-    fontSize: 21,
-    lineHeight: 27,
+    fontSize: 19,
+    lineHeight: 24,
     fontWeight: "900",
     letterSpacing: -0.65,
     marginBottom: 12,
   },
   bodyText: {
-    fontSize: 17,
-    lineHeight: 32,
+    fontSize: 15,
+    lineHeight: 27,
     color: "#2B355F",
     fontWeight: "500",
   },
@@ -281,13 +306,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   factTitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#6E748B",
     fontWeight: "800",
     letterSpacing: 0.8,
   },
   factValue: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#1D2450",
     fontWeight: "700",
   },
@@ -298,6 +323,7 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     flexDirection: "row",
+    alignItems: "flex-end",
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 12,
@@ -313,30 +339,30 @@ const styles = StyleSheet.create({
   },
   deadlineCardLabel: {
     color: "#8D8157",
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     letterSpacing: 0.8,
   },
   deadlineCardValue: {
     marginTop: 2,
     color: "#0F1843",
-    fontSize: 40,
-    lineHeight: 44,
+    fontSize: 30,
+    lineHeight: 34,
     fontWeight: "900",
     letterSpacing: -0.5,
   },
   contactButton: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 14,
     backgroundColor: "#EA8600",
-    minHeight: 66,
+    minHeight: 52,
     alignItems: "center",
     justifyContent: "center",
   },
   contactButtonText: {
     color: "#FFFFFF",
-    fontSize: 23,
-    lineHeight: 27,
+    fontSize: 15,
+    lineHeight: 19,
     fontWeight: "800",
     letterSpacing: -0.2,
   },

@@ -1,10 +1,12 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import {
-  StatusBar,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,307 +14,313 @@ import { SafeAreaView } from "react-native-safe-area-context";
 type InterestChip = {
   id: string;
   label: string;
-  icon: string;
-  selected: boolean;
+  selected?: boolean;
+  emoji?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  dotColor?: string;
 };
 
-const opportunityType: InterestChip[] = [
-  { id: "scholarships", label: "Scholarships", icon: "🎓", selected: true },
-  { id: "events", label: "Events", icon: "🗓️", selected: true },
-  { id: "courses", label: "Courses", icon: "📚", selected: false },
-  { id: "volunteering", label: "Volunteering", icon: "🤝", selected: true },
-  { id: "internships", label: "Internships", icon: "💼", selected: false },
+const iosSections: { title: string; items: InterestChip[] }[] = [
+  {
+    title: "OPPORTUNITY TYPE",
+    items: [
+      {
+        id: "scholarships",
+        label: "Scholarships",
+        selected: true,
+        emoji: "🎓",
+      },
+      { id: "events", label: "Events", selected: true, emoji: "🏢" },
+      { id: "courses", label: "Courses", emoji: "📚" },
+      {
+        id: "volunteering",
+        label: "Volunteering",
+        selected: true,
+        emoji: "🤝",
+      },
+      { id: "internships", label: "Internships", emoji: "💼" },
+    ],
+  },
+  {
+    title: "SUBJECT AREA",
+    items: [
+      { id: "web-dev", label: "Web Dev", selected: true, emoji: "💻" },
+      { id: "business", label: "Business", emoji: "📊" },
+      { id: "social-work", label: "Social Work", selected: true, emoji: "🌱" },
+      { id: "healthcare", label: "Healthcare", emoji: "🧬" },
+      { id: "arts", label: "Arts", emoji: "🎨" },
+      { id: "technology", label: "Technology", emoji: "⚙️" },
+    ],
+  },
+  {
+    title: "FORMAT",
+    items: [
+      { id: "online", label: "Online", emoji: "🌐" },
+      { id: "in-person", label: "In-person", emoji: "🏢" },
+      { id: "hybrid", label: "Hybrid", emoji: "🔀" },
+    ],
+  },
 ];
 
-const subjectArea: InterestChip[] = [
-  { id: "web-dev", label: "Web Dev", icon: "💻", selected: true },
-  { id: "business", label: "Business", icon: "📊", selected: false },
-  { id: "social-work", label: "Social Work", icon: "🌱", selected: true },
-  { id: "healthcare", label: "Healthcare", icon: "🧬", selected: false },
-  { id: "arts", label: "Arts", icon: "🎨", selected: false },
-  { id: "technology", label: "Technology", icon: "⚙️", selected: false },
+const androidSections: { title: string; items: InterestChip[] }[] = [
+  {
+    title: "OPPORTUNITY TYPE",
+    items: [
+      {
+        id: "scholarships",
+        label: "Scholarships",
+        selected: true,
+        icon: "checkmark",
+      },
+      { id: "events", label: "Events", icon: "flash" },
+      {
+        id: "internships",
+        label: "Internships",
+        selected: true,
+        icon: "checkmark",
+      },
+      { id: "volunteering", label: "Volunteering", icon: "hand-left" },
+    ],
+  },
+  {
+    title: "SUBJECT AREA",
+    items: [
+      { id: "web-dev", label: "Web Dev", selected: true, icon: "checkmark" },
+      { id: "business", label: "Business", icon: "briefcase" },
+      {
+        id: "social-work",
+        label: "Social Work",
+        selected: true,
+        icon: "checkmark",
+      },
+      { id: "healthcare", label: "Healthcare", icon: "medkit" },
+      { id: "arts", label: "Arts", selected: true, icon: "checkmark" },
+      { id: "technology", label: "Technology", icon: "laptop" },
+    ],
+  },
+  {
+    title: "FORMAT",
+    items: [
+      { id: "online", label: "Online", dotColor: "#40C978" },
+      { id: "in-person", label: "In-person", dotColor: "#4F8EEB" },
+      { id: "hybrid", label: "Hybrid", dotColor: "#A877F3" },
+    ],
+  },
 ];
 
-const formatType: InterestChip[] = [
-  { id: "online", label: "Online", icon: "🌐", selected: false },
-  { id: "in-person", label: "In-person", icon: "🏢", selected: false },
-  { id: "hybrid", label: "Hybrid", icon: "🔀", selected: false },
-];
+function InterestPill({ item, isIOS }: { item: InterestChip; isIOS: boolean }) {
+  const isSelected = Boolean(item.selected);
 
-type Section = {
-  title: string;
-  items: InterestChip[];
-};
+  if (isIOS) {
+    return (
+      <View
+        style={[
+          iosStyles.pill,
+          isSelected ? iosStyles.pillSelected : iosStyles.pillDefault,
+        ]}
+      >
+        {isSelected ? <Text style={iosStyles.tick}>✓</Text> : null}
+        {item.emoji ? <Text style={iosStyles.emoji}>{item.emoji}</Text> : null}
+        <Text style={iosStyles.pillText}>{item.label}</Text>
+      </View>
+    );
+  }
 
-const sections: Section[] = [
-  { title: "OPPORTUNITY TYPE", items: opportunityType },
-  { title: "SUBJECT AREA", items: subjectArea },
-  { title: "FORMAT", items: formatType },
-];
+  return (
+    <View
+      style={[
+        androidStyles.pill,
+        isSelected ? androidStyles.pillSelected : androidStyles.pillDefault,
+      ]}
+    >
+      {item.dotColor ? (
+        <View style={[androidStyles.dot, { backgroundColor: item.dotColor }]} />
+      ) : null}
+      {item.icon ? (
+        <Ionicons
+          name={item.icon}
+          size={14}
+          color={isSelected ? "#4F46D8" : "#6F778F"}
+          style={androidStyles.icon}
+        />
+      ) : null}
+      <Text
+        style={[
+          androidStyles.pillText,
+          isSelected ? androidStyles.pillTextSelected : null,
+        ]}
+      >
+        {item.label}
+      </Text>
+    </View>
+  );
+}
 
 export default function ModalScreen() {
   const router = useRouter();
-  const { height } = useWindowDimensions();
+  const isIOS = Platform.OS === "ios";
 
-  const scale = height < 760 ? 0.8 : height < 830 ? 0.86 : 0.9;
-  const sv = (value: number) => Math.round(value * scale);
-
-  const onContinue = () => {
-    router.replace("/(tabs)");
-  };
-
-  const selectedCount = [
-    ...opportunityType,
-    ...subjectArea,
-    ...formatType,
-  ].filter((item) => item.selected).length;
-
-  const renderChip = (chip: InterestChip) => {
-    const isSelected = chip.selected;
-
-    return (
-      <View
-        key={chip.id}
-        style={[
-          styles.chip,
-          {
-            borderWidth: sv(1.5),
-            paddingVertical: sv(8),
-            paddingHorizontal: sv(13),
-            minHeight: sv(46),
-            marginRight: sv(10),
-            marginBottom: sv(10),
-          },
-          isSelected ? styles.chipSelected : styles.chipUnselected,
-        ]}
-      >
-        {isSelected ? (
-          <Text
-            style={[
-              styles.chipMark,
-              {
-                fontSize: sv(13),
-                lineHeight: sv(16),
-                marginRight: sv(6),
-              },
-            ]}
-          >
-            ✓
-          </Text>
-        ) : null}
-        <Text
-          style={[
-            styles.chipIcon,
-            {
-              fontSize: sv(15),
-              marginRight: sv(8),
-            },
-          ]}
-        >
-          {chip.icon}
-        </Text>
-        <Text
-          style={[
-            styles.chipLabel,
-            {
-              fontSize: sv(16),
-              lineHeight: sv(20),
-            },
-          ]}
-        >
-          {chip.label}
-        </Text>
-      </View>
-    );
-  };
+  const sections = isIOS ? iosSections : androidSections;
+  const selectedCount = sections
+    .flatMap((section) => section.items)
+    .filter((item) => item.selected).length;
 
   return (
     <SafeAreaView
-      style={styles.screen}
+      style={isIOS ? iosStyles.screen : androidStyles.screen}
       edges={["top", "left", "right", "bottom"]}
     >
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar style="dark" />
 
-      <View
-        style={[
-          styles.container,
-          {
-            paddingHorizontal: sv(20),
-            paddingTop: sv(80),
-          },
-        ]}
+      <ScrollView
+        contentContainerStyle={
+          isIOS ? iosStyles.content : androidStyles.content
+        }
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.contentArea}>
-          <View style={[styles.headerBlock, { marginBottom: sv(14) }]}>
-            <Text
-              style={[styles.heading, { fontSize: sv(46), lineHeight: sv(50) }]}
-            >
-              What are you{"\n"}interested in?
-            </Text>
-            <Text
-              style={[
-                styles.subheading,
-                {
-                  fontSize: sv(15),
-                  lineHeight: sv(22),
-                },
-              ]}
-            >
-              Select at least 3 to personalize your feed
-            </Text>
-            <Text
-              style={[
-                styles.selectedText,
-                { fontSize: sv(16), lineHeight: sv(22), marginTop: sv(5) },
-              ]}
-            >
-              {selectedCount} selected
-            </Text>
-          </View>
-
-          {sections.map((section, index) => (
-            <View
-              key={section.title}
-              style={[
-                styles.section,
-                { marginBottom: index === sections.length - 1 ? 0 : sv(12) },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.sectionTitle,
-                  {
-                    fontSize: sv(12),
-                    lineHeight: sv(25),
-                    letterSpacing: 1.8,
-                    marginBottom: sv(8),
-                  },
-                ]}
-              >
-                {section.title}
-              </Text>
-              <View style={styles.chipGrid}>
-                {section.items.map(renderChip)}
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View
-          style={[
-            styles.bottomBar,
-            {
-              paddingHorizontal: sv(14),
-              paddingTop: sv(30),
-              paddingBottom: sv(50),
-              marginHorizontal: -sv(20),
-            },
-          ]}
+        <Text style={isIOS ? iosStyles.heading : androidStyles.heading}>
+          What are you interested in?
+        </Text>
+        <Text style={isIOS ? iosStyles.subheading : androidStyles.subheading}>
+          Select at least 3 to personalize your feed
+        </Text>
+        <Text
+          style={isIOS ? iosStyles.selectedText : androidStyles.selectedText}
         >
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={[
-              styles.continueButton,
-              {
-                borderRadius: sv(14),
-                minHeight: sv(66),
-              },
-            ]}
-            onPress={onContinue}
+          {selectedCount} selected
+        </Text>
+
+        {sections.map((section) => (
+          <View
+            key={section.title}
+            style={isIOS ? iosStyles.section : androidStyles.section}
           >
             <Text
-              style={[
-                styles.continueButtonText,
-                {
-                  fontSize: sv(20),
-                  lineHeight: sv(44),
-                },
-              ]}
+              style={
+                isIOS ? iosStyles.sectionTitle : androidStyles.sectionTitle
+              }
             >
-              Continue
+              {section.title}
             </Text>
-          </TouchableOpacity>
-        </View>
+            <View style={isIOS ? iosStyles.pillWrap : androidStyles.pillWrap}>
+              {section.items.map((item) => (
+                <InterestPill key={item.id} item={item} isIOS={isIOS} />
+              ))}
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+
+      <View style={isIOS ? iosStyles.footer : androidStyles.footer}>
+        <TouchableOpacity
+          style={
+            isIOS ? iosStyles.continueButton : androidStyles.continueButton
+          }
+          activeOpacity={0.9}
+          onPress={() => router.replace("/(tabs)")}
+        >
+          <Text
+            style={isIOS ? iosStyles.continueText : androidStyles.continueText}
+          >
+            Continue
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const iosStyles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F6F6F8",
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#F7F7FA",
-  },
-  contentArea: {
-    flex: 1,
-    justifyContent: "flex-start",
-  },
-  headerBlock: {
-    marginBottom: 0,
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 50,
+    paddingBottom: 20,
   },
   heading: {
-    color: "#0D1540",
+    color: "#0F1B4D",
+    fontSize: 44,
+    lineHeight: 48,
     fontWeight: "800",
-    letterSpacing: -0.4,
-    marginBottom: 6,
+    letterSpacing: -0.8,
   },
   subheading: {
-    color: "#6C758D",
+    marginTop: 8,
+    color: "#6C738B",
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: "500",
   },
   selectedText: {
-    marginTop: 4,
-    color: "#E37F00",
-    fontWeight: "700",
-    letterSpacing: -0.2,
+    marginTop: 2,
+    color: "#F08A00",
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "800",
   },
   section: {
-    marginBottom: 0,
+    marginTop: 20,
   },
   sectionTitle: {
     color: "#606B84",
+    fontSize: 12,
     fontWeight: "800",
+    letterSpacing: 1.8,
+    marginBottom: 10,
   },
-  chipGrid: {
+  pillWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
-    alignItems: "flex-start",
   },
-  chip: {
-    borderRadius: 999,
+  pill: {
+    minHeight: 42,
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    marginRight: 10,
+    marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
   },
-  chipSelected: {
-    backgroundColor: "#EAEBFB",
-    borderColor: "#EAEBFB",
+  pillSelected: {
+    backgroundColor: "#E5E7FB",
+    borderWidth: 1.5,
+    borderColor: "#E5E7FB",
   },
-  chipUnselected: {
+  pillDefault: {
     backgroundColor: "#FFFFFF",
-    borderColor: "#B7AFFF",
+    borderWidth: 1.5,
+    borderColor: "#C7BEF0",
   },
-  chipMark: {
+  tick: {
     color: "#E58A09",
+    fontSize: 13,
     fontWeight: "900",
-    textAlign: "center",
+    marginRight: 7,
   },
-  chipIcon: {
-    marginTop: -1,
+  emoji: {
+    fontSize: 15,
+    marginRight: 8,
   },
-  chipLabel: {
+  pillText: {
     color: "#17214B",
+    fontSize: 15,
+    lineHeight: 19,
     fontWeight: "700",
   },
-  bottomBar: {
+  footer: {
     backgroundColor: "#FFFFFF",
-    borderTopWidth: 1,
     borderTopColor: "#E7E5F3",
+    borderTopWidth: 1,
+    paddingHorizontal: 24,
+    paddingTop: 14,
+    paddingBottom: 18,
   },
   continueButton: {
+    minHeight: 60,
+    borderRadius: 14,
     backgroundColor: "#E88300",
     alignItems: "center",
     justifyContent: "center",
@@ -322,9 +330,119 @@ const styles = StyleSheet.create({
     shadowRadius: 11,
     elevation: 4,
   },
-  continueButtonText: {
+  continueText: {
     color: "#FFFFFF",
+    fontSize: 18,
     fontWeight: "800",
-    letterSpacing: 0,
+  },
+});
+
+const androidStyles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#F7F7FA",
+  },
+  content: {
+    paddingHorizontal: 22,
+    paddingTop: 20,
+    paddingBottom: 18,
+  },
+  heading: {
+    color: "#121B38",
+    fontSize: 30,
+    lineHeight: 34,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  subheading: {
+    marginTop: 8,
+    color: "#6E758C",
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: "500",
+  },
+  selectedText: {
+    marginTop: 2,
+    color: "#4F46D8",
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "700",
+  },
+  section: {
+    marginTop: 20,
+  },
+  sectionTitle: {
+    color: "#939AAA",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1.5,
+    marginBottom: 10,
+  },
+  pillWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 14,
+    borderWidth: 1.2,
+    minHeight: 42,
+    paddingHorizontal: 13,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  pillSelected: {
+    backgroundColor: "#DAD8FA",
+    borderColor: "#DAD8FA",
+  },
+  pillDefault: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E3E6EF",
+  },
+  icon: {
+    marginRight: 6,
+  },
+  dot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  pillText: {
+    color: "#485066",
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: "600",
+  },
+  pillTextSelected: {
+    color: "#4F46D8",
+    fontWeight: "700",
+  },
+  footer: {
+    backgroundColor: "#F1F2F6",
+    borderTopColor: "#E6E8F2",
+    borderTopWidth: 1,
+    paddingHorizontal: 22,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  continueButton: {
+    minHeight: 54,
+    borderRadius: 12,
+    backgroundColor: "#5347DB",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#5347DB",
+    shadowOpacity: 0.24,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  continueText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    lineHeight: 19,
+    fontWeight: "700",
   },
 });

@@ -2,29 +2,20 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type TagTone = "gold" | "mint" | "blue" | "pink";
-type LeftTone = "sand" | "lavender" | "rose" | "green";
+import { mockOpportunities } from "../../data/mock-opportunities";
+import { useSavedOpportunities } from "../../hooks/use-saved-opportunities";
+import { TagTone } from "../../types/opportunity";
 
-type DiscoverCard = {
-  id: string;
-  type: string;
-  title: string;
-  org: string;
-  subLabel: string;
-  leftTone: LeftTone;
-  tags: { label: string; tone: TagTone }[];
-  bookmarked?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
-};
+type DiscoverCard = (typeof mockOpportunities)[number];
 
 const filters = [
   { id: "all", label: "All", icon: undefined, active: true },
@@ -33,71 +24,11 @@ const filters = [
   { id: "int", label: "Internship", icon: "briefcase-outline" },
 ] as const;
 
-const cards: DiscoverCard[] = [
-  {
-    id: "1",
-    type: "Scholarship",
-    title: "Chevening Scholarship UK 2025-26",
-    org: "British Embassy",
-    subLabel: "5 days left",
-    leftTone: "sand",
-    tags: [
-      { label: "Scholarship", tone: "gold" },
-      { label: "Fully Funded", tone: "mint" },
-    ],
-    icon: "school",
-  },
-  {
-    id: "2",
-    type: "Course",
-    title: "Google Data Analytics Professional Certificate",
-    org: "Google via Coursera",
-    subLabel: "Free with aid",
-    leftTone: "lavender",
-    tags: [
-      { label: "Course", tone: "blue" },
-      { label: "Online", tone: "mint" },
-    ],
-    bookmarked: true,
-    icon: "layers",
-  },
-  {
-    id: "3",
-    type: "Event",
-    title: "Climate Youth Forum - Southeast Asia",
-    org: "UNDP Cambodia",
-    subLabel: "Apr 20, 2025",
-    leftTone: "rose",
-    tags: [{ label: "Event", tone: "pink" }],
-    icon: "bonfire",
-  },
-  {
-    id: "4",
-    type: "Workshop",
-    title: "Youth Leadership Bootcamp",
-    org: "Cambodia Youth Network",
-    subLabel: "Apr 27, 2025",
-    leftTone: "green",
-    tags: [
-      { label: "Workshop", tone: "mint" },
-      { label: "In-person", tone: "blue" },
-    ],
-    icon: "people",
-  },
-];
-
 const tagColors: Record<TagTone, { bg: string; fg: string }> = {
   gold: { bg: "#F7E9BC", fg: "#6E5205" },
   mint: { bg: "#D9EFD9", fg: "#1E5A33" },
   blue: { bg: "#E2E7FB", fg: "#2A3D8F" },
   pink: { bg: "#F4DFF7", fg: "#6B3478" },
-};
-
-const leftColors: Record<LeftTone, string> = {
-  sand: "#EFE6C9",
-  lavender: "#DCDCF2",
-  rose: "#EBCBED",
-  green: "#CDEAD9",
 };
 
 function FilterChip({
@@ -110,24 +41,36 @@ function FilterChip({
   active?: boolean;
 }) {
   return (
-    <TouchableOpacity style={[styles.filterChip, active && styles.filterChipActive]}>
+    <TouchableOpacity
+      style={[styles.filterChip, active && styles.filterChipActive]}
+    >
       {icon ? <Ionicons name={icon} size={14} color="#36427A" /> : null}
-      <Text style={[styles.filterText, active && styles.filterTextActive]}>{label}</Text>
+      <Text style={[styles.filterText, active && styles.filterTextActive]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
 
 function OpportunityCard({
   item,
+  bookmarked,
   onPress,
+  onToggleSaved,
 }: {
   item: DiscoverCard;
+  bookmarked: boolean;
   onPress?: () => void;
+  onToggleSaved: () => void;
 }) {
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={onPress}>
-      <View style={[styles.cardLeft, { backgroundColor: leftColors[item.leftTone] }]}> 
-        <Ionicons name={item.icon} size={34} color="#4B3B8A" />
+      <View style={[styles.cardLeft, { backgroundColor: item.heroColor }]}>
+        <Ionicons
+          name={item.detailIcon as keyof typeof Ionicons.glyphMap}
+          size={34}
+          color="#4B3B8A"
+        />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.tagRow}>
@@ -147,7 +90,7 @@ function OpportunityCard({
         <Text style={styles.cardOrg}>{item.org}</Text>
 
         <View style={styles.bottomRow}>
-          {item.id === "1" ? (
+          {item.id === "fulbright" ? (
             <View style={styles.deadlinePill}>
               <Ionicons name="alarm-outline" size={13} color="#B57700" />
               <Text style={styles.deadlineText}>{item.subLabel}</Text>
@@ -156,11 +99,20 @@ function OpportunityCard({
             <Text style={styles.subLabel}>{item.subLabel}</Text>
           )}
 
-          <Ionicons
-            name={item.bookmarked ? "bookmark" : "bookmark-outline"}
-            size={20}
-            color={item.bookmarked ? "#E58E26" : "#AAA3D4"}
-          />
+          <TouchableOpacity
+            style={styles.bookmarkButton}
+            activeOpacity={0.8}
+            onPress={(event) => {
+              event.stopPropagation();
+              onToggleSaved();
+            }}
+          >
+            <Ionicons
+              name={bookmarked ? "bookmark" : "bookmark-outline"}
+              size={20}
+              color={bookmarked ? "#E58E26" : "#AAA3D4"}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>
@@ -169,6 +121,7 @@ function OpportunityCard({
 
 export default function SearchScreen() {
   const router = useRouter();
+  const { isSaved, toggleSaved } = useSavedOpportunities();
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -212,12 +165,17 @@ export default function SearchScreen() {
         </Text>
 
         <View style={styles.cardList}>
-          {cards.map((item) => (
+          {mockOpportunities.map((item) => (
             <OpportunityCard
               key={item.id}
               item={item}
-              onPress={
-                item.id === "1" ? () => router.push("/opportunity-detail") : undefined
+              bookmarked={isSaved(item.id)}
+              onToggleSaved={() => toggleSaved(item.id)}
+              onPress={() =>
+                router.push({
+                  pathname: "/opportunity/[id]",
+                  params: { id: item.id },
+                })
               }
             />
           ))}
@@ -363,6 +321,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  bookmarkButton: {
+    padding: 4,
   },
   subLabel: {
     fontSize: 14,
