@@ -58,7 +58,7 @@ export default function IndexScreen() {
             <TouchableOpacity
               style={iosStyles.googleButton}
               activeOpacity={0.9}
-              onPress={() => router.push("/modal")}
+              onPress={() => router.push("/survey")}
             >
               <FontAwesome
                 name="google"
@@ -83,49 +83,46 @@ export default function IndexScreen() {
         </>
       ) : (
         <>
+          <View style={androidStyles.glowTop} />
+          <View style={androidStyles.glowBottom} />
+
           <View style={androidStyles.heroArea}>
-            <View style={androidStyles.androidHeaderChip}>
-              <Text style={androidStyles.androidHeaderChipText}>
-                For Cambodian Students
-              </Text>
+            <View
+              style={[
+                androidStyles.floatingCard,
+                androidStyles.cardScholarship,
+              ]}
+            >
+              <View style={androidStyles.cardLine} />
+              <Text style={androidStyles.cardMiniLabel}>Scholarship</Text>
             </View>
 
-            <View style={androidStyles.androidHeroCardMain}>
-              <Text style={androidStyles.androidHeroType}>Scholarship</Text>
-              <Text style={androidStyles.androidHeroTitle}>
-                Fulbright Foreign Student Program
-              </Text>
+            <View style={[androidStyles.floatingCard, androidStyles.cardEvent]}>
+              <Text style={androidStyles.cardEventTitle}>TEDxPhnomPenh</Text>
+              <Text style={androidStyles.cardEventSub}>Youth Forum</Text>
             </View>
 
-            <View style={androidStyles.androidHeroRow}>
-              <View style={androidStyles.androidHeroMiniCard}>
-                <Text style={androidStyles.androidHeroMiniType}>Course</Text>
-                <Text style={androidStyles.androidHeroMiniTitle}>
-                  Google Data Analytics
-                </Text>
-              </View>
-              <View style={androidStyles.androidHeroMiniCardAlt}>
-                <Text style={androidStyles.androidHeroMiniType}>Event</Text>
-                <Text style={androidStyles.androidHeroMiniTitle}>
-                  TEDx Youth Summit
-                </Text>
-              </View>
+            <View
+              style={[androidStyles.floatingCard, androidStyles.cardInternship]}
+            >
+              <Text style={androidStyles.cardInternshipText}>Internship</Text>
             </View>
           </View>
 
           <View style={androidStyles.content}>
+            <Text style={androidStyles.badge}>✦ FOR CAMBODIAN STUDENTS</Text>
             <Text style={androidStyles.headingPrimary}>
-              Find Your Next Opportunity
+              Discover Your{"\n"}Next Opportunity
             </Text>
             <Text style={androidStyles.subtitle}>
-              Scholarships, internships, and events tailored for Cambodian
-              students.
+              Scholarships, internships, events, and more all in one place,
+              personalized for you.
             </Text>
 
             <TouchableOpacity
               style={androidStyles.googleButton}
               activeOpacity={0.9}
-              onPress={() => router.push("/modal")}
+              onPress={() => router.push("/survey")}
             >
               <View style={androidStyles.googleIconBadge}>
                 <FontAwesome name="google" size={20} color="#4285F4" />
@@ -316,143 +313,168 @@ const iosStyles = StyleSheet.create({
 const androidStyles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#101527",
+    backgroundColor: "#29226F",
+  },
+  glowTop: {
+    position: "absolute",
+    top: -130,
+    right: -60,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(84, 71, 188, 0.45)",
+  },
+  glowBottom: {
+    position: "absolute",
+    bottom: -120,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: "rgba(25, 18, 84, 0.55)",
   },
   heroArea: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
+    height: 304,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
   },
-  androidHeaderChip: {
-    alignSelf: "flex-start",
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "rgba(59, 130, 246, 0.18)",
+  floatingCard: {
+    position: "absolute",
+    borderRadius: 18,
+    shadowColor: "#100A39",
+    shadowOpacity: 0.32,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  cardScholarship: {
+    width: 124,
+    height: 102,
+    left: 84,
+    top: 56,
+    backgroundColor: "rgba(84, 79, 152, 0.82)",
     borderWidth: 1,
-    borderColor: "rgba(125, 167, 255, 0.4)",
+    borderColor: "rgba(133, 126, 198, 0.68)",
+    paddingHorizontal: 14,
+    paddingTop: 30,
+    transform: [{ rotate: "-11deg" }],
   },
-  androidHeaderChipText: {
-    color: "#B9D2FF",
-    fontSize: 12,
-    fontWeight: "700",
+  cardLine: {
+    height: 10,
+    width: 74,
+    borderRadius: 8,
+    backgroundColor: "rgba(162, 165, 214, 0.8)",
+    marginBottom: 12,
   },
-  androidHeroCardMain: {
-    marginTop: 12,
-    borderRadius: 20,
-    backgroundColor: "#1F2A48",
-    borderWidth: 1,
-    borderColor: "#2E3A60",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  androidHeroType: {
-    color: "#A8B3D6",
+  cardMiniLabel: {
+    color: "#F1F3FF",
     fontSize: 11,
     fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
   },
-  androidHeroTitle: {
-    marginTop: 6,
+  cardEvent: {
+    width: 224,
+    height: 86,
+    left: 136,
+    top: 102,
+    backgroundColor: "#E39849",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    transform: [{ rotate: "6deg" }],
+  },
+  cardEventTitle: {
     color: "#FFFFFF",
-    fontSize: 20,
-    lineHeight: 26,
+    fontSize: 22,
+    lineHeight: 24,
     fontWeight: "800",
   },
-  androidHeroRow: {
-    marginTop: 12,
-    flexDirection: "row",
-    gap: 10,
-  },
-  androidHeroMiniCard: {
-    flex: 1,
-    borderRadius: 16,
-    backgroundColor: "#2D3352",
-    borderWidth: 1,
-    borderColor: "#3D466A",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  androidHeroMiniCardAlt: {
-    flex: 1,
-    borderRadius: 16,
-    backgroundColor: "#34304B",
-    borderWidth: 1,
-    borderColor: "#4A3E67",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  androidHeroMiniType: {
-    color: "#A8B3D6",
-    fontSize: 10,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.7,
-  },
-  androidHeroMiniTitle: {
-    marginTop: 5,
-    color: "#EFF3FF",
+  cardEventSub: {
+    marginTop: 4,
+    color: "rgba(255, 255, 255, 0.95)",
     fontSize: 13,
+    lineHeight: 16,
+    fontWeight: "500",
+  },
+  cardInternship: {
+    width: 122,
+    height: 70,
+    left: 110,
+    top: 178,
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
+    transform: [{ rotate: "-3deg" }],
+  },
+  cardInternshipText: {
+    color: "#0D0C16",
+    fontSize: 14,
     lineHeight: 18,
     fontWeight: "700",
   },
   content: {
-    marginTop: "auto",
-    backgroundColor: "#F6F8FD",
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 24,
+    flex: 1,
+    paddingHorizontal: 40,
+    paddingBottom: 26,
+  },
+  badge: {
+    color: "#E6A044",
+    fontSize: 12,
+    lineHeight: 18,
+    fontWeight: "700",
+    letterSpacing: 1.6,
+    textTransform: "uppercase",
   },
   headingPrimary: {
-    color: "#121A33",
-    fontSize: 30,
-    lineHeight: 36,
+    marginTop: 12,
+    color: "#F4F5FB",
+    fontSize: 52,
+    lineHeight: 56,
     fontWeight: "800",
-    letterSpacing: -0.5,
+    letterSpacing: -1,
   },
   subtitle: {
-    marginTop: 10,
-    color: "#66708F",
+    marginTop: 16,
+    color: "#A9AED0",
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 22,
     fontWeight: "500",
   },
   googleButton: {
-    marginTop: 24,
-    minHeight: 54,
-    borderRadius: 12,
+    marginTop: "auto",
+    minHeight: 74,
+    borderRadius: 18,
     backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#DFE4F2",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 12,
+    shadowColor: "#130E3F",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 14,
+    elevation: 8,
   },
   googleIconBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#F4F7FF",
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
   },
   googleButtonText: {
-    color: "#121A33",
-    fontSize: 15,
+    color: "#10121D",
+    fontSize: 17,
     fontWeight: "700",
   },
   skipButton: {
-    marginTop: 10,
-    minHeight: 48,
+    marginTop: 18,
+    minHeight: 40,
     alignItems: "center",
     justifyContent: "center",
   },
   secondaryAction: {
-    color: "#60709E",
-    fontSize: 14,
-    fontWeight: "600",
+    color: "#767DA9",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });

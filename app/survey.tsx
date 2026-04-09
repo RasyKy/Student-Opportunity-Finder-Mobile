@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
 import {
     Platform,
     ScrollView,
@@ -11,6 +10,8 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { useUserInterests } from "../hooks/use-user-interests";
 
 type InterestChip = {
   id: string;
@@ -23,14 +24,6 @@ type InterestSection = {
   title: string;
   items: InterestChip[];
 };
-
-const defaultSelectedInterestIds = [
-  "scholarships",
-  "internships",
-  "web-dev",
-  "social-work",
-  "arts",
-];
 
 const iosSections: InterestSection[] = [
   {
@@ -175,29 +168,13 @@ function InterestPill({
   );
 }
 
-export default function ModalScreen() {
+export default function SurveyScreen() {
   const router = useRouter();
   const isIOS = Platform.OS === "ios";
-
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    new Set(defaultSelectedInterestIds),
-  );
+  const { selectedCount, selectedIdSet, toggleInterest } = useUserInterests();
 
   const sections = isIOS ? iosSections : androidSections;
 
-  const toggleInterest = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
-  const selectedCount = selectedIds.size;
   const canContinue = selectedCount >= 3;
 
   return (
@@ -251,7 +228,7 @@ export default function ModalScreen() {
                   key={item.id}
                   item={item}
                   isIOS={isIOS}
-                  selected={selectedIds.has(item.id)}
+                  selected={selectedIdSet.has(item.id)}
                   onPress={() => toggleInterest(item.id)}
                 />
               ))}
@@ -401,12 +378,12 @@ const iosStyles = StyleSheet.create({
 const androidStyles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#F4F4F7",
+    backgroundColor: "#F2F2F6",
   },
   content: {
     paddingHorizontal: 28,
-    paddingTop: 24,
-    paddingBottom: 26,
+    paddingTop: 26,
+    paddingBottom: 120,
   },
   heading: {
     color: "#121B38",
@@ -414,7 +391,7 @@ const androidStyles = StyleSheet.create({
     lineHeight: 49,
     fontWeight: "800",
     letterSpacing: -0.9,
-    maxWidth: 310,
+    maxWidth: 320,
   },
   subheading: {
     marginTop: 10,
@@ -425,7 +402,7 @@ const androidStyles = StyleSheet.create({
   },
   selectedInline: {
     color: "#4F46D8",
-    fontWeight: "700",
+    fontWeight: "800",
   },
   section: {
     marginTop: 28,
@@ -444,15 +421,15 @@ const androidStyles = StyleSheet.create({
   pill: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 14,
+    borderRadius: 17,
     borderWidth: 1.3,
-    minHeight: 50,
-    paddingHorizontal: 14,
+    minHeight: 54,
+    paddingHorizontal: 16,
     marginRight: 10,
     marginBottom: 10,
   },
   pillSelected: {
-    backgroundColor: "#D8D5FC",
+    backgroundColor: "#D5D2FC",
     borderColor: "#4F46D8",
   },
   pillDefault: {
@@ -470,8 +447,8 @@ const androidStyles = StyleSheet.create({
   },
   pillText: {
     color: "#485066",
-    fontSize: 14,
-    lineHeight: 19,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: "600",
   },
   pillTextSelected: {
@@ -479,14 +456,14 @@ const androidStyles = StyleSheet.create({
     fontWeight: "700",
   },
   footer: {
-    backgroundColor: "#F4F4F7",
+    backgroundColor: "#F2F2F6",
     paddingHorizontal: 28,
     paddingTop: 10,
-    paddingBottom: 18,
+    paddingBottom: 20,
   },
   continueButton: {
-    minHeight: 74,
-    borderRadius: 20,
+    minHeight: 76,
+    borderRadius: 22,
     backgroundColor: "#5347DB",
     alignItems: "center",
     justifyContent: "center",

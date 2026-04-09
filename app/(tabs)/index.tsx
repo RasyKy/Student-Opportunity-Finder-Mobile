@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useMemo } from "react";
 import {
     Platform,
     ScrollView,
@@ -13,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { mockOpportunities } from "../../data/mock-opportunities";
 import { useSavedOpportunities } from "../../hooks/use-saved-opportunities";
+import { useUserInterests } from "../../hooks/use-user-interests";
 
 type HomeOpportunity = (typeof mockOpportunities)[number];
 
@@ -52,31 +54,142 @@ const categories: CategoryItem[] = [
   },
 ];
 
-const featuredIds = ["fulbright", "jica", "tedx"];
+function includesAny(text: string, keywords: string[]) {
+  return keywords.some((keyword) => text.includes(keyword));
+}
 
-const featured: HomeOpportunity[] = featuredIds
-  .map((id) => mockOpportunities.find((item) => item.id === id))
-  .filter((item): item is HomeOpportunity => Boolean(item));
+function toSearchText(item: HomeOpportunity) {
+  return [
+    item.title,
+    item.org,
+    item.typeTag,
+    item.searchType,
+    item.location,
+    item.format,
+    item.tags.map((tag) => tag.label).join(" "),
+  ]
+    .join(" ")
+    .toLowerCase();
+}
 
-const recent = mockOpportunities
-  .filter(
-    (item) =>
-      item.featuredIn.includes("recent") ||
-      item.featuredIn.includes("discover"),
-  )
-  .slice(0, 4);
+const interestMatchers: Record<string, (item: HomeOpportunity) => boolean> = {
+  scholarships: (item) => {
+    const text = toSearchText(item);
+    return text.includes("scholarship");
+  },
+  events: (item) => {
+    const text = toSearchText(item);
+    return text.includes("event") || text.includes("summit");
+  },
+  internships: (item) => {
+    const text = toSearchText(item);
+    return text.includes("internship");
+  },
+  volunteering: (item) => {
+    const text = toSearchText(item);
+    return text.includes("volunteer") || text.includes("community");
+  },
+  courses: (item) => {
+    const text = toSearchText(item);
+    return text.includes("course") || text.includes("bootcamp");
+  },
+  online: (item) => item.format.toLowerCase() === "online",
+  "in-person": (item) => item.format.toLowerCase() === "in-person",
+  hybrid: (item) => item.format.toLowerCase() === "hybrid",
+  "web-dev": (item) => {
+    const text = toSearchText(item);
+    return includesAny(text, [
+      "web",
+      "full stack",
+      "fullstack",
+      "software",
+      "developer",
+      "programming",
+      "coding",
+    ]);
+  },
+  business: (item) => {
+    const text = toSearchText(item);
+    return includesAny(text, [
+      "business",
+      "leadership",
+      "management",
+      "analytics",
+      "entrepreneur",
+    ]);
+  },
+  "social-work": (item) => {
+    const text = toSearchText(item);
+    return includesAny(text, [
+      "social",
+      "community",
+      "public",
+      "volunteer",
+      "outreach",
+      "youth",
+    ]);
+  },
+  healthcare: (item) => {
+    const text = toSearchText(item);
+    return includesAny(text, ["health", "medical", "care", "medicine"]);
+  },
+  arts: (item) => {
+    const text = toSearchText(item);
+    return includesAny(text, ["art", "design", "creative", "music", "tedx"]);
+  },
+  technology: (item) => {
+    const text = toSearchText(item);
+    return includesAny(text, [
+      "tech",
+      "technology",
+      "digital",
+      "stem",
+      "engineering",
+      "data",
+      "software",
+      "google",
+    ]);
+  },
+};
 
-const iosRecent = ["fulbright", "tedx"]
-  .map((id) => mockOpportunities.find((item) => item.id === id))
-  .filter((item): item is HomeOpportunity => Boolean(item));
+function scoreByInterests(
+  item: HomeOpportunity,
+  selectedInterestIds: Set<string>,
+) {
+  let score = 0;
 
-const iosRecommended = ["unicef", "fullstack"]
-  .map((id) => mockOpportunities.find((item) => item.id === id))
-  .filter((item): item is HomeOpportunity => Boolean(item));
+  selectedInterestIds.forEach((id) => {
+    const matcher = interestMatchers[id];
+    if (matcher && matcher(item)) {
+      score += 1;
+    }
+  });
 
-const iosDiscover = ["jica", "google-data"]
-  .map((id) => mockOpportunities.find((item) => item.id === id))
-  .filter((item): item is HomeOpportunity => Boolean(item));
+  return score;
+}
+
+function pickByBuckets(
+  opportunities: HomeOpportunity[],
+  buckets: string[],
+  limit: number,
+) {
+  const bucketSet = new Set(buckets);
+
+  const primary = opportunities.filter((item) =>
+    item.featuredIn.some((bucket) => bucketSet.has(bucket)),
+  );
+
+  if (primary.length >= limit) {
+    return primary.slice(0, limit);
+  }
+
+  const takenIds = new Set(primary.map((item) => item.id));
+  const fallback = opportunities
+    .filter((item) => !takenIds.has(item.id))
+    .slice(0, limit - primary.length);
+
+  return [...primary, ...fallback];
+}
 
 const iosTagColors = {
   gold: { bg: "#F8EFCB", fg: "#6C5607" },
@@ -358,6 +471,52 @@ export default function HomeScreen() {
   const router = useRouter();
   const isIOS = Platform.OS === "ios";
   const { isSaved, toggleSaved } = useSavedOpportunities();
+  const { selectedIdSet } = useUserInterests();
+
+  const rankedOpportunities = useMemo(() => {
+    const scored = mockOpportunities.map((item, index) => ({
+      item,
+      index,
+      score: scoreByInterests(item, selectedIdSet),
+    }));
+
+    const matched = scored.filter((entry) => entry.score > 0);
+    const source = matched.length > 0 ? matched : scored;
+
+    return source
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .map((entry) => entry.item);
+  }, [selectedIdSet]);
+
+  const featuredItems = useMemo(
+    () =>
+      pickByBuckets(
+        rankedOpportunities,
+        ["recent", "recommended", "discover"],
+        3,
+      ),
+    [rankedOpportunities],
+  );
+
+  const recentItems = useMemo(
+    () => pickByBuckets(rankedOpportunities, ["recent", "discover"], 4),
+    [rankedOpportunities],
+  );
+
+  const iosRecentItems = useMemo(
+    () => pickByBuckets(rankedOpportunities, ["recent"], 2),
+    [rankedOpportunities],
+  );
+
+  const iosRecommendedItems = useMemo(
+    () => pickByBuckets(rankedOpportunities, ["recommended"], 2),
+    [rankedOpportunities],
+  );
+
+  const iosDiscoverItems = useMemo(
+    () => pickByBuckets(rankedOpportunities, ["discover"], 2),
+    [rankedOpportunities],
+  );
 
   if (isIOS) {
     return (
@@ -399,7 +558,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={iosStyles.horizontalList}
           >
-            {iosRecent.map((item) => (
+            {iosRecentItems.map((item) => (
               <IOSFeedCard
                 key={item.id}
                 item={item}
@@ -421,7 +580,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={iosStyles.horizontalList}
           >
-            {iosRecommended.map((item) => (
+            {iosRecommendedItems.map((item) => (
               <IOSFeedCard
                 key={item.id}
                 item={item}
@@ -439,7 +598,7 @@ export default function HomeScreen() {
 
           <IOSSectionHeader title="Discover All" action="Filter" />
           <View style={iosStyles.discoverList}>
-            {iosDiscover.map((item) => (
+            {iosDiscoverItems.map((item) => (
               <IOSDiscoverRow
                 key={item.id}
                 item={item}
@@ -485,7 +644,7 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.featuredRow}
         >
-          {featured.map((item) => (
+          {featuredItems.map((item) => (
             <FeaturedCard
               key={item.id}
               item={item}
@@ -500,7 +659,7 @@ export default function HomeScreen() {
         </ScrollView>
 
         <View style={styles.dotRow}>
-          {featured.map((item, index) => (
+          {featuredItems.map((item, index) => (
             <View
               key={item.id}
               style={[styles.dot, index === 0 ? styles.dotActive : null]}
@@ -521,7 +680,7 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.recentRow}
         >
-          {recent.map((item) => (
+          {recentItems.map((item) => (
             <RecentCard
               key={item.id}
               item={item}
