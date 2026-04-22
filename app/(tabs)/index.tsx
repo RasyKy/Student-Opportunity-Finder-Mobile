@@ -537,7 +537,11 @@ export default function HomeScreen() {
               </Text>
             </View>
 
-            <TouchableOpacity style={iosStyles.bellButton} activeOpacity={0.9}>
+            <TouchableOpacity
+              style={iosStyles.bellButton}
+              activeOpacity={0.9}
+              onPress={() => router.push("/notifications")}
+            >
               <Ionicons
                 name="notifications-outline"
                 size={19}
@@ -632,7 +636,11 @@ export default function HomeScreen() {
             <Text style={styles.userName}>Dara Khmer</Text>
           </View>
 
-          <TouchableOpacity style={styles.bellButton} activeOpacity={0.9}>
+          <TouchableOpacity
+            style={styles.bellButton}
+            activeOpacity={0.9}
+            onPress={() => router.push("/notifications")}
+          >
             <Ionicons name="notifications-outline" size={22} color="#7A8092" />
             <View style={styles.bellDot} />
           </TouchableOpacity>

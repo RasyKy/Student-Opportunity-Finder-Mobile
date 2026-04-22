@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
+import { type Href, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -45,11 +47,170 @@ const settingsRows: ProfileSettingRow[] = [
   { id: "logout", icon: "log-out-outline", label: "Logout", danger: true },
 ];
 
+const androidInterestChipIds = [
+  "scholarships",
+  "volunteering",
+  "socialwork",
+  "webdev",
+] as const;
+
+const androidSettingsRows: ProfileSettingRow[] = [
+  {
+    id: "language",
+    icon: "language-outline",
+    label: "Language",
+    value: "English",
+  },
+  {
+    id: "notifications",
+    icon: "notifications-outline",
+    label: "Notifications",
+  },
+  {
+    id: "privacy",
+    icon: "shield-checkmark-outline",
+    label: "Privacy Policy",
+  },
+  {
+    id: "about",
+    icon: "information-circle-outline",
+    label: "About Us",
+  },
+  { id: "logout", icon: "log-out-outline", label: "Logout", danger: true },
+];
+
 export default function ProfileScreen() {
+  const router = useRouter();
   const { savedIds } = useSavedOpportunities();
   const savedCount = savedIds.length;
   const interestsCount = interestChips.length;
   const viewedCount = mockOpportunities.length + 6;
+  const androidInterestIdSet = new Set<string>(androidInterestChipIds);
+  const androidInterestChips = interestChips.filter((chip) =>
+    androidInterestIdSet.has(chip.id),
+  );
+
+  const handleSettingPress = (id: string) => {
+    if (id === "language") {
+      router.push("/language-settings" as Href);
+      return;
+    }
+
+    if (id === "notifications") {
+      router.push("/notifications");
+    }
+  };
+
+  const handleEditInterestsPress = () => {
+    router.push("/edit-interests" as Href);
+  };
+
+  if (Platform.OS === "android") {
+    return (
+      <SafeAreaView
+        style={androidStyles.screen}
+        edges={["top", "left", "right"]}
+      >
+        <StatusBar style="dark" />
+
+        <ScrollView
+          style={androidStyles.scroll}
+          contentContainerStyle={androidStyles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={androidStyles.pageTitle}>PROFILE</Text>
+
+          <View style={androidStyles.avatarCard}>
+            <Ionicons name="person-outline" size={42} color="#0E152A" />
+          </View>
+
+          <Text style={androidStyles.name}>Dara Khmer</Text>
+          <Text style={androidStyles.email}>dara.khmer@student.edu.kh</Text>
+
+          <View style={androidStyles.statsRow}>
+            <View style={androidStyles.statCard}>
+              <Text style={androidStyles.statValue}>{savedCount}</Text>
+              <Text style={androidStyles.statLabel}>SAVED</Text>
+            </View>
+            <View style={androidStyles.statCard}>
+              <Text style={androidStyles.statValue}>{interestsCount}</Text>
+              <Text style={androidStyles.statLabel}>INTERESTS</Text>
+            </View>
+            <View style={androidStyles.statCard}>
+              <Text style={androidStyles.statValue}>{viewedCount}</Text>
+              <Text style={androidStyles.statLabel}>VIEWED</Text>
+            </View>
+          </View>
+
+          <View style={androidStyles.sectionHeaderRow}>
+            <Text style={androidStyles.sectionTitle}>Your Interests</Text>
+            <TouchableOpacity
+              style={androidStyles.editButton}
+              onPress={handleEditInterestsPress}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="create-outline" size={12} color="#4D3FD5" />
+              <Text style={androidStyles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={androidStyles.chipsWrap}>
+            {androidInterestChips.map((chip) => (
+              <View key={chip.id} style={androidStyles.chip}>
+                <Ionicons name="star-outline" size={11} color="#3D34BF" />
+                <Text style={androidStyles.chipLabel}>{chip.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={androidStyles.settingsTitle}>Settings</Text>
+          {androidSettingsRows.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={[
+                androidStyles.settingItem,
+                item.danger ? androidStyles.settingItemDanger : null,
+              ]}
+              onPress={() => handleSettingPress(item.id)}
+              activeOpacity={0.85}
+            >
+              <View style={androidStyles.settingLeft}>
+                <View
+                  style={[
+                    androidStyles.settingIconWrap,
+                    item.danger ? androidStyles.settingIconWrapDanger : null,
+                  ]}
+                >
+                  <Ionicons
+                    name={item.icon}
+                    size={17}
+                    color={item.danger ? "#E14545" : "#4237BE"}
+                  />
+                </View>
+                <Text
+                  style={[
+                    androidStyles.settingLabel,
+                    item.danger ? androidStyles.settingLabelDanger : null,
+                  ]}
+                >
+                  {item.label}
+                </Text>
+              </View>
+
+              {!item.danger ? (
+                <View style={androidStyles.settingRight}>
+                  {item.value ? (
+                    <Text style={androidStyles.settingValue}>{item.value}</Text>
+                  ) : null}
+                  <Ionicons name="chevron-forward" size={18} color="#A5B0C3" />
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -102,7 +263,11 @@ export default function ProfileScreen() {
         <View style={styles.bodySection}>
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Your Interests</Text>
-            <TouchableOpacity style={styles.inlineEdit} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={styles.inlineEdit}
+              onPress={handleEditInterestsPress}
+              activeOpacity={0.85}
+            >
               <Ionicons name="create-outline" size={14} color="#E58E00" />
               <Text style={styles.inlineEditText}>Edit</Text>
             </TouchableOpacity>
@@ -129,6 +294,7 @@ export default function ProfileScreen() {
                     ? styles.settingRowNoBorder
                     : null,
                 ]}
+                onPress={() => handleSettingPress(item.id)}
                 activeOpacity={0.85}
               >
                 <View style={styles.settingLeft}>
@@ -170,6 +336,197 @@ export default function ProfileScreen() {
     </SafeAreaView>
   );
 }
+
+const androidStyles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#F5F6FA",
+  },
+  scroll: {
+    flex: 1,
+    backgroundColor: "#F5F6FA",
+  },
+  content: {
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 108,
+  },
+  pageTitle: {
+    alignSelf: "center",
+    color: "#121A33",
+    fontSize: 24,
+    fontWeight: "800",
+    letterSpacing: 2,
+    marginTop: 2,
+  },
+  avatarCard: {
+    marginTop: 16,
+    width: 84,
+    height: 84,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: "#D8DDE8",
+    backgroundColor: "#F8FAFF",
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#5A6D99",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  name: {
+    marginTop: 12,
+    alignSelf: "center",
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#121A33",
+    letterSpacing: -0.15,
+  },
+  email: {
+    marginTop: 3,
+    alignSelf: "center",
+    color: "#7483A1",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  statsRow: {
+    marginTop: 18,
+    flexDirection: "row",
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    minHeight: 72,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D7DEE9",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#2E3D5A",
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  statValue: {
+    color: "#121A33",
+    fontSize: 30,
+    fontWeight: "800",
+    lineHeight: 32,
+  },
+  statLabel: {
+    marginTop: 4,
+    color: "#5F7394",
+    fontSize: 11,
+    letterSpacing: 1.5,
+    fontWeight: "700",
+  },
+  sectionHeaderRow: {
+    marginTop: 26,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionTitle: {
+    fontSize: 16,
+    color: "#151E36",
+    fontWeight: "800",
+    letterSpacing: -0.1,
+  },
+  editButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  editButtonText: {
+    color: "#4D3FD5",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  chipsWrap: {
+    marginTop: 10,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  chip: {
+    minHeight: 30,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#D5D0F1",
+    backgroundColor: "#ECEAF8",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+  },
+  chipLabel: {
+    color: "#3D34BF",
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  settingsTitle: {
+    marginTop: 26,
+    fontSize: 16,
+    color: "#151E36",
+    fontWeight: "800",
+    letterSpacing: -0.1,
+  },
+  settingItem: {
+    marginTop: 10,
+    minHeight: 62,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "#D8DFEA",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  settingItemDanger: {
+    marginTop: 12,
+    borderColor: "#F5D5D8",
+    backgroundColor: "#FDF0F1",
+  },
+  settingLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  settingRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  settingIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "#EFECFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  settingIconWrapDanger: {
+    backgroundColor: "#FFE5E8",
+  },
+  settingLabel: {
+    color: "#2C3752",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  settingLabelDanger: {
+    color: "#DB3232",
+  },
+  settingValue: {
+    color: "#8A97AF",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+});
 
 const styles = StyleSheet.create({
   screen: {

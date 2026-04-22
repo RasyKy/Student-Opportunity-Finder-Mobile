@@ -1,7 +1,7 @@
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -29,6 +29,12 @@ export default function RootLayout() {
           name="opportunity/[id]"
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="language-settings"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="edit-interests" options={{ headerShown: false }} />
         <Stack.Screen
           name="survey"
           options={{ presentation: "fullScreenModal", headerShown: false }}
