@@ -80,6 +80,12 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="no-internet"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

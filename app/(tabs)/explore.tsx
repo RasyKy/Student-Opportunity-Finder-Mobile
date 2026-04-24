@@ -2,17 +2,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { mockOpportunities } from "../../data/mock-opportunities";
+import { getOrganizerIdFromName } from "../../data/mock-organizers";
 import { useSavedOpportunities } from "../../hooks/use-saved-opportunities";
 import { TagTone } from "../../types/opportunity";
 
@@ -108,11 +109,13 @@ function OpportunityCardIOS({
   item,
   bookmarked,
   onPress,
+  onPressOrganizer,
   onToggleSaved,
 }: {
   item: DiscoverCard;
   bookmarked: boolean;
   onPress?: () => void;
+  onPressOrganizer: () => void;
   onToggleSaved: () => void;
 }) {
   return (
@@ -152,7 +155,15 @@ function OpportunityCardIOS({
         </View>
 
         <Text style={iosStyles.cardTitle}>{item.title}</Text>
-        <Text style={iosStyles.cardOrg}>{item.org}</Text>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={(event) => {
+            event.stopPropagation();
+            onPressOrganizer();
+          }}
+        >
+          <Text style={iosStyles.cardOrg}>{item.org}</Text>
+        </TouchableOpacity>
 
         <View style={iosStyles.bottomRow}>
           {item.id === "fulbright" ? (
@@ -188,11 +199,13 @@ function OpportunityCardAndroid({
   item,
   bookmarked,
   onPress,
+  onPressOrganizer,
   onToggleSaved,
 }: {
   item: DiscoverCard;
   bookmarked: boolean;
   onPress?: () => void;
+  onPressOrganizer: () => void;
   onToggleSaved: () => void;
 }) {
   const typeTag = item.tags[0] ?? {
@@ -251,9 +264,17 @@ function OpportunityCardAndroid({
         <Text numberOfLines={1} style={androidStyles.cardTitle}>
           {item.title}
         </Text>
-        <Text numberOfLines={1} style={androidStyles.cardOrg}>
-          {item.org} • {item.location}
-        </Text>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={(event) => {
+            event.stopPropagation();
+            onPressOrganizer();
+          }}
+        >
+          <Text numberOfLines={1} style={androidStyles.cardOrg}>
+            {item.org} • {item.location}
+          </Text>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -316,6 +337,12 @@ export default function SearchScreen() {
                 item={item}
                 bookmarked={isSaved(item.id)}
                 onToggleSaved={() => toggleSaved(item.id)}
+                onPressOrganizer={() =>
+                  router.push({
+                    pathname: "/organizer/[id]",
+                    params: { id: getOrganizerIdFromName(item.org) },
+                  })
+                }
                 onPress={() =>
                   router.push({
                     pathname: "/opportunity/[id]",
@@ -410,6 +437,12 @@ export default function SearchScreen() {
               item={item}
               bookmarked={isSaved(item.id)}
               onToggleSaved={() => toggleSaved(item.id)}
+              onPressOrganizer={() =>
+                router.push({
+                  pathname: "/organizer/[id]",
+                  params: { id: getOrganizerIdFromName(item.org) },
+                })
+              }
               onPress={() =>
                 router.push({
                   pathname: "/opportunity/[id]",

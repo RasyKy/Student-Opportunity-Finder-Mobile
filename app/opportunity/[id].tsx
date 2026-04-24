@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { mockOpportunities } from "../../data/mock-opportunities";
+import { getOrganizerIdFromName } from "../../data/mock-organizers";
 import { useSavedOpportunities } from "../../hooks/use-saved-opportunities";
 
 type DetailOpportunity = (typeof mockOpportunities)[number];
@@ -86,6 +87,7 @@ export default function OpportunityDetailScreen() {
 
   const bookmarked = isSaved(item.id);
   const topTags = [item.typeTag, item.fundingTag, item.statusTag];
+  const organizerId = getOrganizerIdFromName(item.org);
   const isAndroid = Platform.OS === "android";
 
   if (!isAndroid) {
@@ -147,12 +149,21 @@ export default function OpportunityDetailScreen() {
 
           <Text style={iosStyles.title}>{item.title}</Text>
 
-          <View style={iosStyles.orgRow}>
+          <TouchableOpacity
+            style={iosStyles.orgRow}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname: "/organizer/[id]",
+                params: { id: organizerId },
+              })
+            }
+          >
             <Text style={iosStyles.orgText}>{item.org}</Text>
             <View style={iosStyles.verifiedBadge}>
               <Ionicons name="checkmark" size={12} color="#FFFFFF" />
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={iosStyles.metaRow}>
             <View style={iosStyles.metaItem}>
@@ -307,11 +318,20 @@ export default function OpportunityDetailScreen() {
 
           <Text style={androidStyles.title}>{item.title}</Text>
 
-          <View style={androidStyles.orgRow}>
+          <TouchableOpacity
+            style={androidStyles.orgRow}
+            activeOpacity={0.85}
+            onPress={() =>
+              router.push({
+                pathname: "/organizer/[id]",
+                params: { id: organizerId },
+              })
+            }
+          >
             <Text style={androidStyles.orgText}>{item.org}</Text>
             <Text style={androidStyles.dotText}>•</Text>
             <Text style={androidStyles.daysLeftText}>{item.dateLeft}</Text>
-          </View>
+          </TouchableOpacity>
 
           <View style={androidStyles.locationRow}>
             <Ionicons name="location-outline" size={16} color="#9AA2B5" />

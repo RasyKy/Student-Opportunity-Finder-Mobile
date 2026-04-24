@@ -58,7 +58,7 @@ export default function IndexScreen() {
             <TouchableOpacity
               style={iosStyles.googleButton}
               activeOpacity={0.9}
-              onPress={() => router.push("/survey")}
+              onPress={() => router.push("/language-onboarding")}
             >
               <FontAwesome
                 name="google"
@@ -122,7 +122,7 @@ export default function IndexScreen() {
             <TouchableOpacity
               style={androidStyles.googleButton}
               activeOpacity={0.9}
-              onPress={() => router.push("/survey")}
+              onPress={() => router.push("/language-onboarding")}
             >
               <View style={androidStyles.googleIconBadge}>
                 <FontAwesome name="google" size={20} color="#4285F4" />

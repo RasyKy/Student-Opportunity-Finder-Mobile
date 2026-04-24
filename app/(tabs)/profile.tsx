@@ -98,6 +98,16 @@ export default function ProfileScreen() {
 
     if (id === "notifications") {
       router.push("/notifications");
+      return;
+    }
+
+    if (id === "about") {
+      router.push("/about-us" as Href);
+      return;
+    }
+
+    if (id === "privacy") {
+      router.push("/privacy-policy" as Href);
     }
   };
 

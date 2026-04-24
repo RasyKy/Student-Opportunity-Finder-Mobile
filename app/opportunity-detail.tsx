@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { getOrganizerIdFromName } from "../data/mock-organizers";
 import { useSavedOpportunities } from "../hooks/use-saved-opportunities";
 
 const opportunityTags = ["Scholarship", "Fully Funded", "Open"] as const;
@@ -33,6 +34,7 @@ export default function OpportunityDetailScreen() {
   const router = useRouter();
   const { isSaved, toggleSaved } = useSavedOpportunities();
   const bookmarked = isSaved("fulbright");
+  const organizerId = getOrganizerIdFromName("US Embassy Phnom Penh");
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
@@ -88,12 +90,21 @@ export default function OpportunityDetailScreen() {
           Fulbright Foreign Student Program 2025-2026
         </Text>
 
-        <View style={styles.orgRow}>
+        <TouchableOpacity
+          style={styles.orgRow}
+          activeOpacity={0.85}
+          onPress={() =>
+            router.push({
+              pathname: "/organizer/[id]",
+              params: { id: organizerId },
+            })
+          }
+        >
           <Text style={styles.orgText}>US Embassy Phnom Penh</Text>
           <View style={styles.verifiedBadge}>
             <Ionicons name="checkmark" size={12} color="#FFFFFF" />
           </View>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.metaRow}>
           <View style={styles.metaItem}>
